@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>BuildRun</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF"></script>
+
 <style>
 body{font-family:Arial;background:#eef2f7;margin:0}
 header{background:#0a2540;color:white;padding:20px;text-align:center}
@@ -18,7 +22,7 @@ button{padding:10px;margin-top:10px}
 
 <header>
 <h1>BuildRun</h1>
-<p>Invest in Construction Machines</p>
+<p>Invest in Machines</p>
 </header>
 
 <div class="container" id="machines"></div>
@@ -28,14 +32,22 @@ button{padding:10px;margin-top:10px}
 <p id="balance">Balance: 0 FCFA</p>
 </div>
 
-<script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF"></script>
-
 <script>
 
-// ===== SUPABASE =====
-const supabaseUrl = "https://xtqhhozntvdmzcywkpbu.supabase.co";
-const supabaseKey = "sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+// ===== SAFE START =====
+window.onload = function(){
+
+// ===== SUPABASE SAFE INIT =====
+let supabase = null;
+
+try {
+supabase = window.supabase.createClient(
+"https://xtqhhozntvdmzcywkpbu.supabase.co",
+"sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt"
+);
+} catch(e){
+console.log("Supabase not loaded, continue without DB");
+}
 
 // ===== MACHINES =====
 const machines = [
@@ -59,23 +71,23 @@ img:"https://images.unsplash.com/photo-1581091870627-3f3f5b5d1b1f"
 let balance = 0;
 
 // ===== DISPLAY =====
-function loadMachines(){
 const container = document.getElementById("machines");
 
 machines.forEach(m=>{
+
 let div = document.createElement("div");
 div.className="machine";
 
 div.innerHTML = `
 <img src="${m.img}">
 <h3>${m.name}</h3>
-<p>Price: ${m.price} FCFA</p>
+<p>${m.price} FCFA</p>
 
 <button onclick="invest('${m.name}',${m.price})">
 Invest
 </button>
 
-<button onclick="mobile('${m.price}')">
+<button onclick="mobile(${m.price})">
 Mobile Money
 </button>
 
@@ -84,7 +96,7 @@ Mobile Money
 
 container.appendChild(div);
 
-// PAYPAL BUTTON
+// PAYPAL
 paypal.Buttons({
 createOrder: (data, actions)=>{
 return actions.order.create({
@@ -101,40 +113,37 @@ invest(m.name,m.price);
 }).render(`#paypal-${m.name}`);
 
 });
-}
 
 // ===== INVEST =====
-async function invest(name, amount){
+window.invest = function(name, amount){
 balance += amount;
 
 document.getElementById("balance").innerText =
 "Balance: "+balance+" FCFA";
 
-await supabase.from("investments").insert([
-{
+// SAVE ONLY IF SUPABASE OK
+if(supabase){
+supabase.from("investments").insert([{
 user_email:"user@test.com",
 machine:name,
 months:2,
 daily_income:100,
 total_return:200,
 earned:0
+}]);
 }
-]);
 
 alert("Investment successful");
 }
 
 // ===== MOBILE MONEY =====
-function mobile(amount){
+window.mobile = function(amount){
 alert("Send "+amount+" FCFA to MTN: 683397310");
 }
 
-// START
-loadMachines();
+}
 
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </body>
 </html>
