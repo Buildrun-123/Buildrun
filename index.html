@@ -1,1 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildRun</title>
+<style>
+body{font-family:Arial;background:#eef2f7;margin:0}
+header{background:#0a2540;color:white;padding:20px;text-align:center}
+.container{padding:20px}
+.machine{background:white;margin:15px;padding:15px;border-radius:10px}
+.machine img{width:100%;border-radius:10px}
+button{padding:10px;margin-top:10px}
+.dashboard{background:white;padding:20px;margin-top:20px;border-radius:10px}
+</style>
+</head>
 
+<body>
+
+<header>
+<h1>BuildRun</h1>
+<p>Invest in Construction Machines</p>
+</header>
+
+<div class="container" id="machines"></div>
+
+<div class="dashboard">
+<h2>Dashboard</h2>
+<p id="balance">Balance: 0 FCFA</p>
+</div>
+
+<script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF"></script>
+
+<script>
+
+// ===== SUPABASE =====
+const supabaseUrl = "https://xtqhhozntvdmzcywkpbu.supabase.co";
+const supabaseKey = "sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+// ===== MACHINES =====
+const machines = [
+{
+name:"Mini Excavator",
+price:5000,
+img:"https://images.unsplash.com/photo-1590644365607-66c8b29e7d2f"
+},
+{
+name:"Bulldozer",
+price:20000,
+img:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c"
+},
+{
+name:"Crane",
+price:100000,
+img:"https://images.unsplash.com/photo-1581091870627-3f3f5b5d1b1f"
+}
+];
+
+let balance = 0;
+
+// ===== DISPLAY =====
+function loadMachines(){
+const container = document.getElementById("machines");
+
+machines.forEach(m=>{
+let div = document.createElement("div");
+div.className="machine";
+
+div.innerHTML = `
+<img src="${m.img}">
+<h3>${m.name}</h3>
+<p>Price: ${m.price} FCFA</p>
+
+<button onclick="invest('${m.name}',${m.price})">
+Invest
+</button>
+
+<button onclick="mobile('${m.price}')">
+Mobile Money
+</button>
+
+<div id="paypal-${m.name}"></div>
+`;
+
+container.appendChild(div);
+
+// PAYPAL BUTTON
+paypal.Buttons({
+createOrder: (data, actions)=>{
+return actions.order.create({
+purchase_units:[{
+amount:{value:(m.price/600).toFixed(2)}
+}]
+});
+},
+onApprove: (data, actions)=>{
+return actions.order.capture().then(()=>{
+invest(m.name,m.price);
+});
+}
+}).render(`#paypal-${m.name}`);
+
+});
+}
+
+// ===== INVEST =====
+async function invest(name, amount){
+balance += amount;
+
+document.getElementById("balance").innerText =
+"Balance: "+balance+" FCFA";
+
+await supabase.from("investments").insert([
+{
+user_email:"user@test.com",
+machine:name,
+months:2,
+daily_income:100,
+total_return:200,
+earned:0
+}
+]);
+
+alert("Investment successful");
+}
+
+// ===== MOBILE MONEY =====
+function mobile(amount){
+alert("Send "+amount+" FCFA to MTN: 683397310");
+}
+
+// START
+loadMachines();
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</body>
+</html>
