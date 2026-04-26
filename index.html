@@ -4,32 +4,20 @@
 <meta charset="UTF-8">
 <title>BuildRun</title>
 
-<script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF"></script>
+<!-- PAYPAL -->
+<script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF&currency=USD"></script>
 
 <style>
-body{
-font-family:Arial;
-background:#eef2f7;
-margin:0;
-}
-
-header{
-background:#0a2540;
-color:white;
-padding:20px;
-text-align:center;
-}
-
-.container{
-padding:20px;
-}
+body{font-family:Arial;background:#eef2f7;margin:0}
+header{background:#0a2540;color:white;padding:20px;text-align:center}
+.container{padding:20px}
 
 .machine{
 background:white;
 margin:15px;
 padding:15px;
 border-radius:10px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
+box-shadow:0 2px 5px rgba(0,0,0,0.1)
 }
 
 .machine img{
@@ -45,25 +33,19 @@ margin-top:10px;
 width:100%;
 border:none;
 border-radius:5px;
+font-weight:bold;
 cursor:pointer;
 }
 
-.invest{
-background:#0a2540;
-color:white;
-}
-
-.momo{
-background:#ffcc00;
-}
+.invest{background:#0a2540;color:white}
+.momo{background:#ffcc00}
 
 .dashboard{
 background:white;
-padding:20px;
 margin:20px;
-border-radius:10px;
+padding:20px;
+border-radius:10px
 }
-
 </style>
 </head>
 
@@ -85,57 +67,49 @@ border-radius:10px;
 
 let balance = 0;
 
-// ===== MACHINES (IMAGES FIXED) =====
+// ===== MACHINES (IMAGES FIXED 100%) =====
 const machines = [
-
 {
 name:"Mini Excavator",
 price:5000,
-img:"https://images.unsplash.com/photo-1581091870627-3f3f5b5d1b1f?auto=format&fit=crop&w=800&q=60"
+img:"https://images.unsplash.com/photo-1626785774625-6dfe0d8c8e4c?auto=format&fit=crop&w=800&q=60"
 },
-
 {
-name:"Loader",
+name:"Wheel Loader",
 price:8000,
-img:"https://images.unsplash.com/photo-1597000000000-000000000000?auto=format&fit=crop&w=800&q=60"
+img:"https://images.unsplash.com/photo-1593698054469-2bbdcf0c4a1c?auto=format&fit=crop&w=800&q=60"
 },
-
 {
 name:"Bulldozer",
 price:20000,
 img:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=60"
 },
-
 {
-name:"Backhoe",
+name:"Backhoe Loader",
 price:25000,
 img:"https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=60"
 },
-
 {
-name:"Crane",
+name:"Tower Crane",
 price:100000,
 img:"https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=60"
 },
-
 {
 name:"Dump Truck",
 price:120000,
-img:"https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=800&q=60"
+img:"https://images.unsplash.com/photo-1581091870627-3f3f5b5d1b1f?auto=format&fit=crop&w=800&q=60"
 },
-
 {
 name:"Heavy Excavator",
 price:300000,
-img:"https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=800&q=60"
+img:"https://images.unsplash.com/photo-1616627980915-4b5c2c0b3e62?auto=format&fit=crop&w=800&q=60"
 }
-
 ];
 
 // ===== DISPLAY =====
 const container = document.getElementById("machines");
 
-machines.forEach(m=>{
+machines.forEach((m, index)=>{
 
 let div = document.createElement("div");
 div.className="machine";
@@ -153,12 +127,12 @@ Invest
 Pay with MTN / Orange
 </button>
 
-<div id="paypal-${m.name}"></div>
+<div id="paypal-${index}"></div>
 `;
 
 container.appendChild(div);
 
-// PAYPAL
+// ===== PAYPAL BUTTON =====
 paypal.Buttons({
 createOrder: function(data, actions){
 return actions.order.create({
@@ -169,17 +143,16 @@ amount:{value:(m.price/600).toFixed(2)}
 },
 onApprove: function(data, actions){
 return actions.order.capture().then(function(){
-invest(m.name,m.price);
+invest(m.name, m.price);
 });
 }
-}).render(`#paypal-${m.name}`);
+}).render(`#paypal-${index}`);
 
 });
 
 // ===== INVEST =====
 function invest(name, amount){
 balance += amount;
-
 document.getElementById("balance").innerText =
 "Balance: " + balance + " FCFA";
 
@@ -188,7 +161,9 @@ alert("Investment successful in " + name);
 
 // ===== MOBILE MONEY =====
 function momo(amount){
-alert("Send " + amount + " FCFA to:\nMTN: 683397310\nOrange: 688529699");
+alert(
+"Send " + amount + " FCFA to:\n\nMTN: 683397310\nOrange: 688529699"
+);
 }
 
 </script>
