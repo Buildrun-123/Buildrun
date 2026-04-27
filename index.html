@@ -159,11 +159,41 @@ invest(m.name, m.price);
 
 // ===== INVEST =====
 function invest(name, amount){
-balance += amount;
+
+let months = prompt("Enter investment duration (2 - 12 months)");
+
+months = parseInt(months);
+
+if(months < 2 || months > 12){
+alert("Invalid duration");
+return;
+}
+
+// ===== CALCULATION =====
+let baseReturn = amount * 1.8; // 5000 → 9000
+let extraMonths = months - 2;
+
+// +10% per extra month
+let totalReturn = baseReturn + (baseReturn * 0.1 * extraMonths);
+
+// daily income
+let days = months * 30;
+let dailyIncome = Math.floor(totalReturn / days);
+
+// ===== UPDATE BALANCE =====
+balance += dailyIncome;
+
 document.getElementById("balance").innerText =
 "Balance: " + balance + " FCFA";
 
-alert("Investment successful in " + name);
+// ===== SHOW RESULT =====
+alert(
+"Machine: " + name +
+"\nMonths: " + months +
+"\nTotal Return: " + Math.floor(totalReturn) + " FCFA" +
+"\nDaily Income: " + dailyIncome + " FCFA"
+);
+
 }
 
 // ===== MOBILE MONEY =====
