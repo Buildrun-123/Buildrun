@@ -4,23 +4,66 @@
 <meta charset="UTF-8">
 <title>BuildRun</title>
 
+<!-- PAYPAL -->
+<script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF&currency=USD"></script>
+
 <style>
 body{font-family:Arial;background:#eef2f7;margin:0}
-header{background:#0a2540;color:white;padding:20px;text-align:center}
-.container{padding:20px}
-.machine{background:white;margin:15px;padding:15px;border-radius:10px}
-.machine img{width:100%;height:200px;object-fit:cover;border-radius:10px}
-button{padding:10px;margin-top:10px;width:100%}
-.dashboard{background:white;padding:20px;margin:20px;border-radius:10px}
-</style>
 
+header{
+background:#0a2540;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+.container{padding:20px}
+
+.machine{
+background:white;
+margin:15px;
+padding:15px;
+border-radius:10px;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.machine img{
+width:100%;
+height:600px;
+object-fit:cover;
+border-radius:10px;
+}
+
+button{
+padding:12px;
+margin-top:10px;
+width:100%;
+border:none;
+border-radius:5px;
+font-size:16px;
+cursor:pointer;
+}
+
+/* COLORS */
+.invest{background:#0a2540;color:white}
+.momo{background:#ffcc00;color:black}
+.withdraw{background:#28a745;color:white}
+
+/* DASHBOARD */
+.dashboard{
+background:white;
+margin:20px;
+padding:20px;
+border-radius:10px;
+}
+</style>
 </head>
 
 <body>
 
 <header>
 <h1>BuildRun</h1>
-<p>Invest Platform</p>
+<p>Invest in Construction Machines</p>
 </header>
 
 <div class="container" id="machines"></div>
@@ -28,13 +71,19 @@ button{padding:10px;margin-top:10px;width:100%}
 <div class="dashboard">
 <h2>Dashboard</h2>
 <p id="balance">Balance: 0 FCFA</p>
-<button onclick="withdraw()">Withdraw</button>
+
+<button class="withdraw" onclick="withdraw()">
+Withdraw Money
+</button>
+
+<p style="margin-top:10px;color:gray;">
+Minimum withdrawal: 1000 FCFA<br>
+Maximum withdrawal: 500000 FCFA<br>
+Processing time: 1 - 3 days
+</p>
 </div>
 
 <script>
-
-// SAFE START
-window.onload = function(){
 
 let balance = 0;
 
@@ -51,8 +100,7 @@ const machines = [
 
 const container = document.getElementById("machines");
 
-// DISPLAY MACHINES
-machines.forEach(m=>{
+machines.forEach((m,index)=>{
 
 let div = document.createElement("div");
 div.className="machine";
@@ -62,27 +110,49 @@ div.innerHTML = `
 <h3>${m.name}</h3>
 <p>${m.price} FCFA</p>
 
-<button onclick="invest('${m.name}',${m.price})">
+<button class="invest" onclick="invest('${m.name}',${m.price})">
 Invest
 </button>
 
-<button onclick="momo(${m.price})">
-MTN / Orange
+<button class="momo" onclick="momo(${m.price})">
+Pay with MTN / Orange
 </button>
+
+<div id="paypal-${index}" style="margin-top:10px;"></div>
 `;
 
 container.appendChild(div);
 
+// PAYPAL BUTTON (SAFE)
+try{
+paypal.Buttons({
+createOrder: function(data, actions){
+return actions.order.create({
+purchase_units:[{
+amount:{value:(m.price/600).toFixed(2)}
+}]
+});
+},
+onApprove: function(data, actions){
+return actions.order.capture().then(function(){
+invest(m.name,m.price);
+});
+}
+}).render(`#paypal-${index}`);
+}catch(e){
+console.log("PayPal error");
+}
+
 });
 
 // INVEST
-window.invest = function(name, amount){
+function invest(name, amount){
 
-let months = prompt("Duration (2-12)");
+let months = prompt("Duration (2-12 months)");
 months = parseInt(months);
 
 if(!months || months < 2 || months > 12){
-alert("Invalid");
+alert("Invalid duration");
 return;
 }
 
@@ -95,45 +165,56 @@ let daily = Math.floor(total/(months*30));
 balance += daily;
 
 document.getElementById("balance").innerText =
-"Balance: "+balance+" FCFA";
+"Balance: " + balance + " FCFA";
 
 alert(
 "Machine: "+name+
-"\nTotal: "+Math.floor(total)+
-"\nDaily: "+daily
+"\nTotal Return: "+Math.floor(total)+
+"\nDaily Income: "+daily+" FCFA"
 );
 
 }
 
 // WITHDRAW
-window.withdraw = function(){
+function withdraw(){
 
-let amount = prompt("Amount");
+let amount = prompt("Enter amount");
+
+amount = parseInt(amount);
 
 if(amount < 1000){
-alert("Min 1000");
+alert("Minimum withdrawal is 1000 FCFA");
+return;
+}
+
+if(amount > 500000){
+alert("Maximum withdrawal is 500000 FCFA");
 return;
 }
 
 if(amount > balance){
-alert("Not enough");
+alert("Insufficient balance");
 return;
 }
+
+let method = prompt("Method: MTN / Orange / PayPal");
 
 balance -= amount;
 
 document.getElementById("balance").innerText =
-"Balance: "+balance+" FCFA";
+"Balance: " + balance + " FCFA";
 
-alert("Withdrawal sent");
+alert(
+"Withdrawal successful\nAmount: "+amount+
+"\nMethod: "+method+
+"\nProcessing: 1-3 days"
+);
 
 }
 
-// MOMO
-window.momo = function(amount){
-alert("Send "+amount+" FCFA\nMTN: 683397310\nOrange: 688529699");
-}
-
+// MOBILE MONEY
+function momo(amount){
+alert("Send "+amount+" FCFA to:\nMTN: 683397310\nOrange: 688529699");
 }
 
 </script>
