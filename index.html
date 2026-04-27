@@ -3,12 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <title>BuildRun</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- PAYPAL -->
+  <!-- PAYPAL -->
 <script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF&currency=USD"></script>
 
 <style>
 body{font-family:Arial;background:#eef2f7;margin:0}
+<div style="padding:20px;text-align:center;background:#fff;">
+<input id="email" placeholder="Enter your email" style="padding:10px;width:80%;max-width:300px;">
+<button onclick="login()" style="padding:10px;margin-top:10px;width:80%;max-width:300px;">
+Login / Register
+</button>
+<p id="user"></p>
+  </div>
 header{background:#0a2540;color:white;padding:20px;text-align:center}
 .container{padding:20px}
 
