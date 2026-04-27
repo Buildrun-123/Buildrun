@@ -66,6 +66,7 @@ border-radius:10px
 <script>
 
 let balance = 0;
+let investments = [];
 
 // ===== MACHINES (IMAGES FIXED 100%) =====
 const machines = [
@@ -161,7 +162,6 @@ invest(m.name, m.price);
 function invest(name, amount){
 
 let months = prompt("Enter investment duration (2 - 12 months)");
-
 months = parseInt(months);
 
 if(months < 2 || months > 12){
@@ -169,33 +169,59 @@ alert("Invalid duration");
 return;
 }
 
-// ===== CALCULATION =====
-let baseReturn = amount * 1.8; // 5000 → 9000
+// CALCUL
+let baseReturn = amount * 1.8;
 let extraMonths = months - 2;
-
-// +10% per extra month
 let totalReturn = baseReturn + (baseReturn * 0.1 * extraMonths);
 
-// daily income
 let days = months * 30;
 let dailyIncome = Math.floor(totalReturn / days);
 
-// ===== UPDATE BALANCE =====
-balance += dailyIncome;
+// SAVE INVESTMENT
+investments.push({
+name,
+amount,
+months,
+totalReturn,
+dailyIncome,
+earned:0
+});
+
+alert("Investment started!");
+
+renderDashboard();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard(){
+
+let html = "";
+
+investments.forEach((inv, index)=>{
+
+// simulate earning
+inv.earned += inv.dailyIncome;
+
+balance += inv.dailyIncome;
+
+html += `
+<div style="border-bottom:1px solid #ccc;padding:10px;">
+<h3>${inv.name}</h3>
+<p>Invested: ${inv.amount} FCFA</p>
+<p>Daily Income: ${inv.dailyIncome} FCFA</p>
+<p>Earned: ${inv.earned} FCFA</p>
+<p>Total Return: ${Math.floor(inv.totalReturn)} FCFA</p>
+</div>
+`;
+
+});
 
 document.getElementById("balance").innerText =
 "Balance: " + balance + " FCFA";
 
-// ===== SHOW RESULT =====
-alert(
-"Machine: " + name +
-"\nMonths: " + months +
-"\nTotal Return: " + Math.floor(totalReturn) + " FCFA" +
-"\nDaily Income: " + dailyIncome + " FCFA"
-);
-
-}
-
+document.querySelector(".dashboard").innerHTML += html;
+  }
+  
 // ===== MOBILE MONEY =====
 function momo(amount){
 alert(
