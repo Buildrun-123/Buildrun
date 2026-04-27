@@ -166,31 +166,54 @@ alert("Invalid duration");
 return;
 }
 
+// CALCUL
 let base = amount * 1.8;
-let extra = (months-2)*0.1;
+let extra = (months - 2) * 0.1;
 let total = base + (base * extra);
 
-let daily = Math.floor(total/(months*30));
+let daily = Math.floor(total / (months * 30));
 
+// UPDATE BALANCE
 balance += daily;
 
 document.getElementById("balance").innerText =
 "Balance: " + balance + " FCFA";
 
-alert(
-"Machine: "+name+
-"\nTotal Return: "+Math.floor(total)+
-"\nDaily Income: "+daily+" FCFA"
-);
-
+// SAVE HISTORY ✅
 history.push({
-name,
-amount,
-months
+name: name,
+amount: amount,
+months: months
 });
 
+// SHOW HISTORY ✅
 renderHistory();
+
+alert(
+"Machine: " + name +
+"\nTotal: " + Math.floor(total) +
+"\nDaily: " + daily
+);
   
+}
+
+// HISTORY 
+function renderHistory(){
+
+let html = "<h3>Investment History</h3>";
+
+history.forEach(h=>{
+html += `
+<div style="background:#f9f9f9;padding:10px;margin-top:5px;border-radius:5px;">
+Machine: ${h.name}<br>
+Amount: ${h.amount} FCFA<br>
+Duration: ${h.months} months
+</div>
+`;
+});
+
+document.getElementById("history").innerHTML = html;
+
 }
 
 // WITHDRAW
@@ -233,24 +256,6 @@ alert(
 // MOBILE MONEY
 function momo(amount){
 alert("Send "+amount+" FCFA to:\nMTN: 683397310\nOrange: 688529699");
-}
-
-// HISTORY 
-function renderHistory(){
-
-let html = "<h3>Investment History</h3>";
-
-history.forEach(h=>{
-html += `
-<div style="background:#f9f9f9;padding:10px;margin-top:5px;border-radius:5px;">
-Machine: ${h.name}<br>
-Amount: ${h.amount} FCFA<br>
-Duration: ${h.months} months
-</div>
-`;
-});
-
-document.getElementById("history").innerHTML = html;
 }
   
 </script>
