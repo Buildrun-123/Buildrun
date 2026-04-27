@@ -4,70 +4,23 @@
 <meta charset="UTF-8">
 <title>BuildRun</title>
 
-<!-- SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- PAYPAL -->
-<script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF&currency=USD"></script>
-
 <style>
 body{font-family:Arial;background:#eef2f7;margin:0}
-
-header{
-background:#0a2540;
-color:white;
-padding:20px;
-text-align:center;
-}
-
+header{background:#0a2540;color:white;padding:20px;text-align:center}
 .container{padding:20px}
-
-.machine{
-background:white;
-margin:15px;
-padding:15px;
-border-radius:10px;
-}
-
-.machine img{
-width:100%;
-height:200px;
-object-fit:cover;
-border-radius:10px;
-}
-
-button{
-padding:10px;
-margin-top:10px;
-width:100%;
-border:none;
-border-radius:5px;
-}
-
-.invest{background:#0a2540;color:white}
-.momo{background:#ffcc00}
-
-.dashboard{
-background:white;
-padding:20px;
-margin:20px;
-border-radius:10px;
-}
+.machine{background:white;margin:15px;padding:15px;border-radius:10px}
+.machine img{width:100%;height:200px;object-fit:cover;border-radius:10px}
+button{padding:10px;margin-top:10px;width:100%}
+.dashboard{background:white;padding:20px;margin:20px;border-radius:10px}
 </style>
+
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div style="padding:20px;text-align:center;background:#fff;">
-<input id="email" placeholder="Enter your email">
-<button onclick="login()">Login / Register</button>
-<p id="user"></p>
-</div>
-
 <header>
 <h1>BuildRun</h1>
-<p>Invest in Machines</p>
+<p>Invest Platform</p>
 </header>
 
 <div class="container" id="machines"></div>
@@ -75,53 +28,31 @@ border-radius:10px;
 <div class="dashboard">
 <h2>Dashboard</h2>
 <p id="balance">Balance: 0 FCFA</p>
-
 <button onclick="withdraw()">Withdraw</button>
-<p>Withdrawal time: 1-3 days</p>
 </div>
 
 <script>
 
-// ===== SUPABASE =====
-const supabaseUrl = "https://xtqhhozntvdmzcywkpbu.supabase.co";
-const supabaseKey = "sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+// SAFE START
+window.onload = function(){
 
-// ===== USER =====
-let currentUser = null;
-
-function login(){
-let email = document.getElementById("email").value;
-
-if(!email){
-alert("Enter email");
-return;
-}
-
-currentUser = email;
-document.getElementById("user").innerText = "Logged in: " + email;
-alert("Login successful");
-}
-
-// ===== DATA =====
 let balance = 0;
-let investments = [];
 
-// ===== MACHINES =====
+// MACHINES (LOCAL IMAGES)
 const machines = [
-{name:"Mini Excavator",price:5000,img:"./mini.jpg"},
-{name:"Wheel Loader",price:8000,img:"./loader.jpg"},
-{name:"Bulldozer",price:20000,img:"./bulldozer.jpg"},
-{name:"Backhoe Loader",price:25000,img:"./backhoe.jpg"},
-{name:"Tower Crane",price:100000,img:"./crane.jpg"},
-{name:"Dump Truck",price:120000,img:"./truck.jpg"},
-{name:"Heavy Excavator",price:300000,img:"./excavator.jpg"}
+{name:"Mini Excavator",price:5000,img:"mini.jpg"},
+{name:"Loader",price:8000,img:"loader.jpg"},
+{name:"Bulldozer",price:20000,img:"bulldozer.jpg"},
+{name:"Backhoe",price:25000,img:"backhoe.jpg"},
+{name:"Crane",price:100000,img:"crane.jpg"},
+{name:"Truck",price:120000,img:"truck.jpg"},
+{name:"Excavator",price:300000,img:"excavator.jpg"}
 ];
 
-// ===== DISPLAY =====
 const container = document.getElementById("machines");
 
-machines.forEach((m,index)=>{
+// DISPLAY MACHINES
+machines.forEach(m=>{
 
 let div = document.createElement("div");
 div.className="machine";
@@ -131,143 +62,81 @@ div.innerHTML = `
 <h3>${m.name}</h3>
 <p>${m.price} FCFA</p>
 
-<button class="invest" onclick="invest('${m.name}',${m.price})">Invest</button>
-<button class="momo" onclick="momo(${m.price})">MTN / Orange</button>
+<button onclick="invest('${m.name}',${m.price})">
+Invest
+</button>
 
-<div id="paypal-${index}"></div>
+<button onclick="momo(${m.price})">
+MTN / Orange
+</button>
 `;
 
 container.appendChild(div);
 
-// PAYPAL
-paypal.Buttons({
-createOrder: (data, actions)=>{
-return actions.order.create({
-purchase_units:[{
-amount:{value:(m.price/600).toFixed(2)}
-}]
-});
-},
-onApprove: (data, actions)=>{
-return actions.order.capture().then(()=>{
-invest(m.name,m.price);
-});
-}
-}).render(`#paypal-${index}`);
-
 });
 
-// ===== INVEST =====
-function invest(name, amount){
+// INVEST
+window.invest = function(name, amount){
 
-let months = prompt("Duration (2-12 months)");
+let months = prompt("Duration (2-12)");
 months = parseInt(months);
 
-if(months < 2 || months > 12){
-alert("Invalid duration");
+if(!months || months < 2 || months > 12){
+alert("Invalid");
 return;
 }
 
-// CALCULATION
-let baseReturn = amount * 1.8;
-let extra = months - 2;
-let totalReturn = baseReturn + (baseReturn * 0.1 * extra);
+let base = amount * 1.8;
+let extra = (months-2)*0.1;
+let total = base + (base * extra);
 
-let days = months * 30;
-let dailyIncome = Math.floor(totalReturn / days);
+let daily = Math.floor(total/(months*30));
 
-// SAVE
-investments.push({
-name,amount,months,totalReturn,dailyIncome,earned:0
-});
-
-// SAVE TO DB
-if(currentUser){
-supabase.from("investments").insert([{
-user_email: currentUser,
-machine: name,
-months: months,
-daily_income: dailyIncome,
-total_return: totalReturn,
-earned: 0
-}]);
-}
-
-alert("Investment started");
-
-renderDashboard();
-}
-
-// ===== DASHBOARD =====
-function renderDashboard(){
-
-let html = "";
-
-investments.forEach(inv=>{
-inv.earned += inv.dailyIncome;
-balance += inv.dailyIncome;
-
-html += `
-<div>
-<h3>${inv.name}</h3>
-<p>Daily: ${inv.dailyIncome}</p>
-<p>Earned: ${inv.earned}</p>
-<p>Total: ${Math.floor(inv.totalReturn)}</p>
-</div>
-`;
-});
+balance += daily;
 
 document.getElementById("balance").innerText =
-"Balance: " + balance + " FCFA";
+"Balance: "+balance+" FCFA";
 
-document.querySelector(".dashboard").innerHTML += html;
+alert(
+"Machine: "+name+
+"\nTotal: "+Math.floor(total)+
+"\nDaily: "+daily
+);
+
 }
 
-// ===== WITHDRAW =====
-function withdraw(){
+// WITHDRAW
+window.withdraw = function(){
 
 let amount = prompt("Amount");
-amount = parseInt(amount);
 
 if(amount < 1000){
 alert("Min 1000");
 return;
 }
 
-if(amount > 500000){
-alert("Max 500000");
-return;
-}
-
 if(amount > balance){
-alert("Insufficient");
+alert("Not enough");
 return;
 }
-
-let method = prompt("Method: MTN / Orange / PayPal");
 
 balance -= amount;
 
 document.getElementById("balance").innerText =
-"Balance: " + balance + " FCFA";
+"Balance: "+balance+" FCFA";
 
-// SAVE
-if(currentUser){
-supabase.from("withdrawals").insert([{
-user_email: currentUser,
-amount: amount
-}]);
+alert("Withdrawal sent");
+
 }
 
-alert("Withdrawal sent (1-3 days)");
+// MOMO
+window.momo = function(amount){
+alert("Send "+amount+" FCFA\nMTN: 683397310\nOrange: 688529699");
 }
 
-// ===== MOMO =====
-function momo(amount){
-alert("Send "+amount+" FCFA to:\nMTN: 683397310\nOrange: 688529699");
 }
 
 </script>
 
 </body>
-  </html>
+</html>
