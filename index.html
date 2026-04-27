@@ -101,8 +101,8 @@ Processing time: 1 - 3 days
 
 <script>
 
-let balance = 0;
-let history = [];
+let history = JSON.parse(localStorage.getItem("history")) || [];
+let balance = parseInt(localStorage.getItem("balance")) || 0;
 
 // MACHINES (LOCAL IMAGES)
 const machines = [
@@ -201,6 +201,9 @@ alert(
 "\nTotal: " + Math.floor(total) +
 "\nDaily: " + daily
 );
+
+localStorage.setItem("history", JSON.stringify(history));
+localStorage.setItem("balance", balance);
   
 }
 
@@ -258,6 +261,8 @@ alert(
 "\nProcessing: 1-3 days"
 );
 
+localStorage.setItem("balance", balance);
+  
 }
 
 // MOBILE MONEY
