@@ -49,7 +49,17 @@ cursor:pointer;
 .invest{background:#0a2540;color:white}
 .momo{background:#ffcc00;color:black}
 .withdraw{background:#28a745;color:white}
+let supabase;
 
+try{
+supabase = window.supabase.createClient(
+"https://xtqhhozntvdmzcywkpbu.supabase.co",
+"sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt"
+);
+}catch(e){
+console.log("Supabase not loaded");
+  }
+  
 /* DASHBOARD */
 .dashboard{
 background:white;
