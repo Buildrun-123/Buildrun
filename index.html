@@ -4,83 +4,35 @@
 <meta charset="UTF-8">
 <title>BuildRun</title>
 
-<!-- PAYPAL -->
 <script src="https://www.paypal.com/sdk/js?client-id=AXzJSzlBTtK0dHLQgK95sIFrQKbxz31Rof3fmtrTa6WtOujg61oZduwAR9WaOf5c5L6nTW7SDoHI5QSF&currency=USD"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 body{font-family:Arial;background:#eef2f7;margin:0}
 
-header{
-background:#0a2540;
-color:white;
-padding:20px;
-text-align:center;
-}
+header{background:#0a2540;color:white;padding:20px;text-align:center}
 
 .container{padding:20px}
 
-.machine{
-background:white;
-margin:15px;
-padding:15px;
-border-radius:10px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
+.machine{background:white;margin:15px;padding:15px;border-radius:10px}
 
-.machine img{
-width:100%;
-height:600px;
-object-fit:cover;
-border-radius:10px;
-}
+.machine img{width:100%;height:600px;object-fit:cover;border-radius:10px}
 
-button{
-padding:12px;
-margin-top:10px;
-width:100%;
-border:none;
-border-radius:5px;
-font-size:16px;
-cursor:pointer;
-}
+button{padding:12px;margin-top:10px;width:100%;border:none;border-radius:5px}
 
-/* COLORS */
 .invest{background:#0a2540;color:white}
 .momo{background:#ffcc00;color:black}
 .withdraw{background:#28a745;color:white}
-let supabase;
 
-try{
-supabase = window.supabase.createClient(
-"https://xtqhhozntvdmzcywkpbu.supabase.co",
-"sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt"
-);
-}catch(e){
-console.log("Supabase not loaded");
-  }
-  
-/* DASHBOARD */
-.dashboard{
-background:white;
-margin:20px;
-padding:20px;
-border-radius:10px;
-}
-  
-hr{
-margin:15px 0;
-}
+.dashboard{background:white;margin:20px;padding:20px;border-radius:10px}
 
-ul{
-padding-left:20px;
-color:#444;
-}
+.admin{background:white;margin:20px;padding:20px;border-radius:10px}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
 <div style="padding:20px;text-align:center;background:white;">
 <input id="email" placeholder="Email"><br><br>
 <input id="password" type="password" placeholder="Password"><br><br>
@@ -90,7 +42,7 @@ color:#444;
 
 <p id="user"></p>
 </div>
-  
+
 <header>
 <h1>BuildRun</h1>
 <p>Invest in Construction Machines</p>
@@ -102,34 +54,35 @@ color:#444;
 <h2>Dashboard</h2>
 <p id="balance">Balance: 0 FCFA</p>
 
-<button class="withdraw" onclick="withdraw()">
-Withdraw Money
-</button>
+<button class="withdraw" onclick="withdraw()">Withdraw</button>
 
 <hr>
-  
-<p style="margin-top:10px;color:gray;">
-<h3>Rules</h3>
-<ul>
-Minimum withdrawal: 1000 FCFA<br>
-Maximum withdrawal: 500000 FCFA<br>
-Processing time: 1 - 3 days
-</ul>
-</p>
+
+<h3>Investment History</h3>
+<div id="history"></div>
+
 </div>
-  
-<hr>
+
+<div class="admin">
+<h2>Admin Panel</h2>
+<button onclick="loadWithdrawals()">Load Withdrawals</button>
+<div id="admin"></div>
+</div>
 
 <script>
 
-let history = JSON.parse(localStorage.getItem("history")) || [];
-let balance = parseInt(localStorage.getItem("balance")) || 0;
+// ===== SUPABASE =====
+const supabase = window.supabase.createClient(
+"https://xtqhhozntvdmzcywkpbu.supabase.co",
+"sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt"
+);
 
-const supabaseUrl = "https://xtqhhozntvdmzcywkpbu.supabase.co";
-const supabaseKey = "sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+// ===== DATA =====
+let history = [];
+let balance = 0;
+let currentUser = null;
 
-// MACHINES (LOCAL IMAGES)
+// ===== MACHINES =====
 const machines = [
 {name:"Mini Excavator",price:5000,img:"mini.jpg"},
 {name:"Loader",price:8000,img:"loader.jpg"},
@@ -140,6 +93,7 @@ const machines = [
 {name:"Excavator",price:300000,img:"excavator.jpg"}
 ];
 
+// ===== DISPLAY MACHINES =====
 const container = document.getElementById("machines");
 
 machines.forEach((m,index)=>{
@@ -152,186 +106,188 @@ div.innerHTML = `
 <h3>${m.name}</h3>
 <p>${m.price} FCFA</p>
 
-<button class="invest" onclick="invest('${m.name}',${m.price})">
-Invest
-</button>
+<button class="invest" onclick="invest('${m.name}',${m.price})">Invest</button>
+<button class="momo" onclick="momo(${m.price})">MTN / Orange</button>
 
-<button class="momo" onclick="momo(${m.price})">
-Pay with MTN / Orange
-</button>
-
-<div id="paypal-${index}" style="margin-top:10px;"></div>
+<div id="paypal-${index}"></div>
 `;
 
 container.appendChild(div);
-  
-async function signUp(){
 
-let email = document.getElementById("email").value;
-let password = document.getElementById("password").value;
-
-const { error } = await supabase.auth.signUp({
-email,
-password
-});
-
-if(error){
-alert(error.message);
-}else{
-alert("Account created! Check your email.");
-}
-
-}
-  
-async function signIn(){
-
-let email = document.getElementById("email").value;
-let password = document.getElementById("password").value;
-
-const { data, error } = await supabase.auth.signInWithPassword({
-email,
-password
-});
-
-if(error){
-alert(error.message);
-}else{
-document.getElementById("user").innerText =
-"Logged in: " + data.user.email;
-}
-  
-}
-  
-// PAYPAL BUTTON (SAFE)
-try{
+// PAYPAL
 paypal.Buttons({
-createOrder: function(data, actions){
+createOrder: (data, actions)=>{
 return actions.order.create({
-purchase_units:[{
-amount:{value:(m.price/600).toFixed(2)}
-}]
+purchase_units:[{amount:{value:(m.price/600).toFixed(2)}}]
 });
 },
-onApprove: function(data, actions){
-return actions.order.capture().then(function(){
+onApprove: (data, actions)=>{
+return actions.order.capture().then(()=>{
 invest(m.name,m.price);
 });
 }
 }).render(`#paypal-${index}`);
-}catch(e){
-console.log("PayPal error");
-}
 
 });
 
-// INVEST
-function invest(name, amount){
+// ===== AUTH =====
+async function signUp(){
+let email = document.getElementById("email").value;
+let password = document.getElementById("password").value;
 
-let months = prompt("Duration (2-12 months)");
-months = parseInt(months);
+const { error } = await supabase.auth.signUp({email,password});
+if(error) alert(error.message);
+else alert("Account created");
+}
 
-if(!months || months < 2 || months > 12){
-alert("Invalid duration");
+async function signIn(){
+let email = document.getElementById("email").value;
+let password = document.getElementById("password").value;
+
+const { data, error } = await supabase.auth.signInWithPassword({email,password});
+
+if(error){
+alert(error.message);
+}else{
+currentUser = data.user;
+document.getElementById("user").innerText="Logged: "+currentUser.email;
+loadInvestments();
+}
+}
+
+// ===== INVEST =====
+async function invest(name, amount){
+
+if(!currentUser){
+alert("Login first");
 return;
 }
 
-// CALCUL
-let base = amount * 1.8;
-let extra = (months - 2) * 0.1;
-let total = base + (base * extra);
+let months = parseInt(prompt("Duration (2-12 months)"));
+if(!months || months<2 || months>12) return;
 
-let daily = Math.floor(total / (months * 30));
+let total = amount * 1.8;
+let daily = Math.floor(total/(months*30));
 
-// UPDATE BALANCE
 balance += daily;
+updateBalance();
 
-document.getElementById("balance").innerText =
-"Balance: " + balance + " FCFA";
-
-// SAVE HISTORY ✅
-history.push({
-name: name,
+// SAVE TO SUPABASE
+await supabase.from("investments").insert([{
+user_email: currentUser.email,
+machine: name,
 amount: amount,
-months: months
-});
+months: months,
+daily_income: daily,
+total_return: total
+}]);
 
-// SHOW HISTORY ✅
-renderHistory();
+loadInvestments();
 
-alert(
-"Machine: " + name +
-"\nTotal: " + Math.floor(total) +
-"\nDaily: " + daily
-);
-
-localStorage.setItem("history", JSON.stringify(history));
-localStorage.setItem("balance", balance);
-  
 }
 
-// HISTORY 
+// ===== LOAD INVESTMENTS =====
+async function loadInvestments(){
+
+const { data, error } = await supabase
+.from("investments")
+.select("*")
+.eq("user_email", currentUser.email);
+
+if(error){
+console.log(error);
+return;
+}
+
+history = data;
+renderHistory();
+
+}
+
+// ===== RENDER HISTORY =====
 function renderHistory(){
 
-let html = "<h3>Investment History</h3>";
+let html="";
 
 history.forEach(h=>{
+html+=`
+<div style="background:#f9f9f9;padding:10px;margin-top:5px;">
+${h.machine} - ${h.amount} FCFA - ${h.months} months
+</div>`;
+});
+
+document.getElementById("history").innerHTML = html;
+
+}
+
+// ===== BALANCE =====
+function updateBalance(){
+document.getElementById("balance").innerText="Balance: "+balance+" FCFA";
+}
+
+// ===== WITHDRAW =====
+async function withdraw(){
+
+if(!currentUser){
+alert("Login first");
+return;
+}
+
+let amount=parseInt(prompt("Amount"));
+
+if(amount<1000 || amount>500000 || amount>balance){
+alert("Invalid");
+return;
+}
+
+let method = prompt("MTN / Orange / PayPal");
+
+balance -= amount;
+updateBalance();
+
+// SAVE WITHDRAWAL
+await supabase.from("withdrawals").insert([{
+user_email: currentUser.email,
+amount: amount,
+method: method,
+status: "pending"
+}]);
+
+alert("Withdrawal request sent (1-3 days)");
+
+}
+
+// ===== ADMIN =====
+async function loadWithdrawals(){
+
+const { data, error } = await supabase
+.from("withdrawals")
+.select("*");
+
+if(error){
+console.log(error);
+return;
+}
+
+let html = "";
+
+data.forEach(w=>{
 html += `
-<div style="background:#f9f9f9;padding:10px;margin-top:5px;border-radius:5px;">
-Machine: ${h.name}<br>
-Amount: ${h.amount} FCFA<br>
-Duration: ${h.months} months
+<div style="border:1px solid #ccc;padding:10px;margin:5px;">
+${w.user_email} - ${w.amount} FCFA - ${w.method} - ${w.status}
 </div>
 `;
 });
 
-document.getElementById("balance").innerHTML = "Balance: " + balance + " FCFA";
+document.getElementById("admin").innerHTML = html;
 
 }
 
-// WITHDRAW
-function withdraw(){
-
-let amount = prompt("Enter amount");
-
-amount = parseInt(amount);
-
-if(amount < 1000){
-alert("Minimum withdrawal is 1000 FCFA");
-return;
-}
-
-if(amount > 500000){
-alert("Maximum withdrawal is 500000 FCFA");
-return;
-}
-
-if(amount > balance){
-alert("Insufficient balance");
-return;
-}
-
-let method = prompt("Method: MTN / Orange / PayPal");
-
-balance -= amount;
-
-document.getElementById("balance").innerText =
-"Balance: " + balance + " FCFA";
-
-alert(
-"Withdrawal successful\nAmount: "+amount+
-"\nMethod: "+method+
-"\nProcessing: 1-3 days"
-);
-
-localStorage.setItem("balance", balance);
-  
-}
-
-// MOBILE MONEY
+// ===== MOMO =====
 function momo(amount){
 alert("Send "+amount+" FCFA to:\nMTN: 683397310\nOrange: 688529699");
 }
-  
+
 </script>
 
 </body>
