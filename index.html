@@ -2,61 +2,37 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>BuildRun</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-body{font-family:Arial;background:#eef2f7;margin:0}
-header{background:#0a2540;color:white;padding:20px;text-align:center}
-.container{padding:20px}
-.machine{background:white;margin:15px;padding:15px;border-radius:10px}
-</style>
+<title>TEST</title>
 </head>
 
 <body>
 
-<header>
-<h1>BuildRun</h1>
-<p>Step 1 - Machines</p>
-</header>
+<h1>TEST MACHINES</h1>
 
-<div class="container" id="machines"></div>
+<div id="machines"></div>
 
 <script>
 
-// SUPABASE (SAFE)
-let supabase = null;
-try{
-supabase = window.supabase.createClient(
-"https://xtqhhozntvdmzcywkpbu.supabase.co",
-"sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt"
-);
-}catch(e){
-console.log("Supabase error", e);
-}
+document.addEventListener("DOMContentLoaded", function(){
 
-// MACHINES
 const machines = [
 {name:"Mini Excavator",price:5000},
 {name:"Loader",price:8000},
-{name:"Bulldozer",price:20000},
-{name:"Crane",price:100000}
+{name:"Bulldozer",price:20000}
 ];
 
-// DISPLAY
 const container = document.getElementById("machines");
 
-machines.forEach(m=>{
-let div = document.createElement("div");
-div.className="machine";
+machines.forEach(function(m){
 
-div.innerHTML = `
-<h3>${m.name}</h3>
-<p>${m.price} FCFA</p>
-`;
+let div = document.createElement("div");
+
+div.innerHTML = m.name + " - " + m.price + " FCFA";
 
 container.appendChild(div);
+
+});
+
 });
 
 </script>
