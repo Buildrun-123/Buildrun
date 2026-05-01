@@ -61,7 +61,7 @@ border-radius:10px;
 
 <header>
 <h1>BuildRun</h1>
-<p>Step 3 - Login working</p>
+<p>Step 4 - Real Invest</p>
 </header>
 
 <div class="container" id="machines"></div>
@@ -69,27 +69,26 @@ border-radius:10px;
 <div class="dashboard">
 <h2>Dashboard</h2>
 <p id="balance">Balance: 0 FCFA</p>
-<button class="withdraw">Withdraw</button>
+
+<hr>
+
+<h3>Investment History</h3>
+<div id="history"></div>
+
 </div>
 
 <script>
 
 document.addEventListener("DOMContentLoaded", function(){
 
-// ===== SUPABASE SAFE =====
-let supabase = null;
-
-try{
-supabase = window.supabase.createClient(
+// ===== SUPABASE =====
+const supabase = window.supabase.createClient(
 "https://xtqhhozntvdmzcywkpbu.supabase.co",
 "sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt"
 );
-}catch(e){
-console.log("Supabase error", e);
-}
 
-// ===== GLOBAL USER =====
-window.currentUser = null;
+let currentUser = null;
+let balance = 0;
 
 // ===== MACHINES =====
 const machines = [
@@ -113,7 +112,7 @@ div.innerHTML = `
 <h3>${m.name}</h3>
 <p>${m.price} FCFA</p>
 
-<button class="invest" onclick="invest()">Invest</button>
+<button class="invest" onclick="invest('${m.name}',${m.price})">Invest</button>
 <button class="momo">MTN / Orange</button>
 `;
 
@@ -144,20 +143,70 @@ const { data, error } = await supabase.auth.signInWithPassword({email,password})
 if(error){
 alert(error.message);
 }else{
-window.currentUser = data.user;
+currentUser = data.user;
 document.getElementById("user").innerText = "Logged: " + data.user.email;
+loadInvestments();
 }
 }
 
-// ===== INVEST TEST =====
-window.invest = function(){
+// ===== INVEST REAL =====
+window.invest = async function(name, amount){
 
-if(!window.currentUser){
+if(!currentUser){
 alert("Login first");
 return;
 }
 
-alert("Investment works ✔️");
+let months = parseInt(prompt("Duration (2-12 months)"));
+if(!months || months<2 || months>12) return;
+
+let total = amount * 1.8;
+let daily = Math.floor(total/(months*30));
+
+// SAVE TO SUPABASE
+await supabase.from("investments").insert([{
+user_email: currentUser.email,
+machine: name,
+amount: amount,
+months: months,
+daily_income: daily,
+total_return: total
+}]);
+
+alert("Investment saved");
+
+loadInvestments();
+
+}
+
+// ===== LOAD HISTORY =====
+async function loadInvestments(){
+
+const { data, error } = await supabase
+.from("investments")
+.select("*")
+.eq("user_email", currentUser.email);
+
+if(error){
+console.log(error);
+return;
+}
+
+let html = "";
+balance = 0;
+
+data.forEach(i=>{
+balance += i.daily_income;
+
+html += `
+<div style="background:#f9f9f9;padding:10px;margin-top:5px;">
+${i.machine} - ${i.amount} FCFA - ${i.months} months
+</div>
+`;
+});
+
+document.getElementById("history").innerHTML = html;
+document.getElementById("balance").innerText = "Balance: " + balance + " FCFA";
 
 }
 
