@@ -2,14 +2,48 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TEST</title>
+<title>BuildRun</title>
+
+<style>
+body{font-family:Arial;background:#eef2f7;margin:0}
+
+header{
+background:#0a2540;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+.container{padding:20px}
+
+.machine{
+background:white;
+margin:15px;
+padding:15px;
+border-radius:10px;
+}
+
+button{
+padding:10px;
+margin-top:10px;
+width:100%;
+border:none;
+border-radius:5px;
+}
+
+.invest{background:#0a2540;color:white}
+.momo{background:#ffcc00}
+</style>
 </head>
 
 <body>
 
-<h1>TEST MACHINES</h1>
+<header>
+<h1>BuildRun</h1>
+<p>Step 2 - Machines visible</p>
+</header>
 
-<div id="machines"></div>
+<div class="container" id="machines"></div>
 
 <script>
 
@@ -18,7 +52,11 @@ document.addEventListener("DOMContentLoaded", function(){
 const machines = [
 {name:"Mini Excavator",price:5000},
 {name:"Loader",price:8000},
-{name:"Bulldozer",price:20000}
+{name:"Bulldozer",price:20000},
+{name:"Backhoe",price:25000},
+{name:"Crane",price:100000},
+{name:"Truck",price:120000},
+{name:"Excavator",price:300000}
 ];
 
 const container = document.getElementById("machines");
@@ -26,8 +64,15 @@ const container = document.getElementById("machines");
 machines.forEach(function(m){
 
 let div = document.createElement("div");
+div.className = "machine";
 
-div.innerHTML = m.name + " - " + m.price + " FCFA";
+div.innerHTML = `
+<h3>${m.name}</h3>
+<p>${m.price} FCFA</p>
+
+<button class="invest">Invest</button>
+<button class="momo">MTN / Orange</button>
+`;
 
 container.appendChild(div);
 
