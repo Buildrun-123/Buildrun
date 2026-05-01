@@ -9,40 +9,22 @@
 <style>
 body{font-family:Arial;background:#eef2f7;margin:0}
 
-header{
-background:#0a2540;
-color:white;
-padding:20px;
-text-align:center;
-}
+header{background:#0a2540;color:white;padding:20px;text-align:center}
 
 .container{padding:20px}
 
-.machine{
-background:white;
-margin:15px;
-padding:15px;
-border-radius:10px;
-}
+.machine{background:white;margin:15px;padding:15px;border-radius:10px}
 
-button{
-padding:10px;
-margin-top:10px;
-width:100%;
-border:none;
-border-radius:5px;
-}
+button{padding:10px;margin-top:10px;width:100%;border:none;border-radius:5px;cursor:pointer}
 
 .invest{background:#0a2540;color:white}
 .momo{background:#ffcc00}
 .withdraw{background:#28a745;color:white}
+.approve{background:#007bff;color:white}
+.reject{background:#dc3545;color:white}
 
-.dashboard{
-background:white;
-margin:20px;
-padding:20px;
-border-radius:10px;
-}
+.dashboard{background:white;margin:20px;padding:20px;border-radius:10px}
+.admin{background:white;margin:20px;padding:20px;border-radius:10px}
 </style>
 </head>
 
@@ -61,7 +43,7 @@ border-radius:10px;
 
 <header>
 <h1>BuildRun</h1>
-<p>Step 4 - Real Invest</p>
+<p>Step 5 - Full System</p>
 </header>
 
 <div class="container" id="machines"></div>
@@ -70,18 +52,30 @@ border-radius:10px;
 <h2>Dashboard</h2>
 <p id="balance">Balance: 0 FCFA</p>
 
+<button class="withdraw" onclick="withdraw()">Withdraw</button>
+
 <hr>
 
 <h3>Investment History</h3>
 <div id="history"></div>
 
+<hr>
+
+<h3>My Withdrawals</h3>
+<div id="myWithdrawals"></div>
+
+</div>
+
+<div class="admin">
+<h2>Admin Panel</h2>
+<button onclick="loadWithdrawals()">Load All Withdrawals</button>
+<div id="admin"></div>
 </div>
 
 <script>
 
 document.addEventListener("DOMContentLoaded", function(){
 
-// ===== SUPABASE =====
 const supabase = window.supabase.createClient(
 "https://xtqhhozntvdmzcywkpbu.supabase.co",
 "sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt"
@@ -103,8 +97,7 @@ const machines = [
 
 const container = document.getElementById("machines");
 
-machines.forEach(function(m){
-
+machines.forEach(m=>{
 let div = document.createElement("div");
 div.className="machine";
 
@@ -117,24 +110,19 @@ div.innerHTML = `
 `;
 
 container.appendChild(div);
-
 });
 
 // ===== AUTH =====
 window.signUp = async function(){
-
-let email = document.getElementById("email").value;
-let password = document.getElementById("password").value;
+let email = email.value;
+let password = password.value;
 
 const { error } = await supabase.auth.signUp({email,password});
-
 if(error) alert(error.message);
 else alert("Account created");
-
 }
 
 window.signIn = async function(){
-
 let email = document.getElementById("email").value;
 let password = document.getElementById("password").value;
 
@@ -144,18 +132,16 @@ if(error){
 alert(error.message);
 }else{
 currentUser = data.user;
-document.getElementById("user").innerText = "Logged: " + data.user.email;
+document.getElementById("user").innerText="Logged: "+currentUser.email;
 loadInvestments();
+loadMyWithdrawals();
 }
 }
 
-// ===== INVEST REAL =====
+// ===== INVEST =====
 window.invest = async function(name, amount){
 
-if(!currentUser){
-alert("Login first");
-return;
-}
+if(!currentUser) return alert("Login first");
 
 let months = parseInt(prompt("Duration (2-12 months)"));
 if(!months || months<2 || months>12) return;
@@ -163,7 +149,6 @@ if(!months || months<2 || months>12) return;
 let total = amount * 1.8;
 let daily = Math.floor(total/(months*30));
 
-// SAVE TO SUPABASE
 await supabase.from("investments").insert([{
 user_email: currentUser.email,
 machine: name,
@@ -173,45 +158,104 @@ daily_income: daily,
 total_return: total
 }]);
 
-alert("Investment saved");
-
 loadInvestments();
 
 }
 
-// ===== LOAD HISTORY =====
+// ===== LOAD INVESTMENTS =====
 async function loadInvestments(){
 
-const { data, error } = await supabase
+const { data } = await supabase
 .from("investments")
 .select("*")
 .eq("user_email", currentUser.email);
 
-if(error){
-console.log(error);
-return;
-}
-
-let html = "";
-balance = 0;
+let html="";
+balance=0;
 
 data.forEach(i=>{
-balance += i.daily_income;
+balance+=i.daily_income;
 
-html += `
-<div style="background:#f9f9f9;padding:10px;margin-top:5px;">
-${i.machine} - ${i.amount} FCFA - ${i.months} months
+html+=`<div>${i.machine} - ${i.amount} FCFA</div>`;
+});
+
+document.getElementById("history").innerHTML=html;
+document.getElementById("balance").innerText="Balance: "+balance+" FCFA";
+
+}
+
+// ===== WITHDRAW =====
+window.withdraw = async function(){
+
+if(!currentUser) return alert("Login first");
+
+let amount=parseInt(prompt("Amount"));
+if(amount<1000 || amount>balance) return alert("Invalid");
+
+let method=prompt("MTN / Orange / PayPal");
+
+await supabase.from("withdrawals").insert([{
+user_email: currentUser.email,
+amount: amount,
+method: method,
+status: "pending"
+}]);
+
+alert("Withdrawal requested");
+loadMyWithdrawals();
+
+}
+
+// ===== MY WITHDRAWALS =====
+async function loadMyWithdrawals(){
+
+const { data } = await supabase
+.from("withdrawals")
+.select("*")
+.eq("user_email", currentUser.email);
+
+let html="";
+
+data.forEach(w=>{
+html+=`<div>${w.amount} FCFA - ${w.method} - ${w.status}</div>`;
+});
+
+document.getElementById("myWithdrawals").innerHTML=html;
+
+}
+
+// ===== ADMIN =====
+window.loadWithdrawals = async function(){
+
+const { data } = await supabase.from("withdrawals").select("*");
+
+let html="";
+
+data.forEach(w=>{
+html+=`
+<div>
+${w.user_email} - ${w.amount} FCFA - ${w.status}
+<button class="approve" onclick="updateStatus('${w.id}','approved')">Approve</button>
+<button class="reject" onclick="updateStatus('${w.id}','rejected')">Reject</button>
 </div>
 `;
 });
 
-document.getElementById("history").innerHTML = html;
-document.getElementById("balance").innerText = "Balance: " + balance + " FCFA";
+document.getElementById("admin").innerHTML=html;
+
+}
+
+window.updateStatus = async function(id,status){
+
+await supabase.from("withdrawals")
+.update({status})
+.eq("id",id);
+
+loadWithdrawals();
 
 }
 
 });
-
 </script>
 
 </body>
