@@ -114,7 +114,9 @@ div.innerHTML = `
 
 container.appendChild(div);
 
-// PAYPAL
+// ✅ PAYPAL SAFE LOAD
+if (typeof paypal !== "undefined") {
+try{
 paypal.Buttons({
 createOrder: (data, actions)=>{
 return actions.order.create({
@@ -127,9 +129,12 @@ invest(m.name,m.price);
 });
 }
 }).render(`#paypal-${index}`);
+}catch(e){
+console.log("PayPal error", e);
+}
+}
 
 });
-
 // ===== AUTH =====
 async function signUp(){
 let email = document.getElementById("email").value;
