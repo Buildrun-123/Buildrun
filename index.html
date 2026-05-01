@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>BuildRun</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 body{font-family:Arial;background:#eef2f7;margin:0}
 
@@ -33,22 +35,63 @@ border-radius:5px;
 
 .invest{background:#0a2540;color:white}
 .momo{background:#ffcc00}
+.withdraw{background:#28a745;color:white}
+
+.dashboard{
+background:white;
+margin:20px;
+padding:20px;
+border-radius:10px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
+<div style="padding:20px;text-align:center;background:white;">
+<input id="email" placeholder="Email"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="signUp()">Sign Up</button>
+<button onclick="signIn()">Login</button>
+
+<p id="user"></p>
+</div>
+
 <header>
 <h1>BuildRun</h1>
-<p>Step 2 - Machines visible</p>
+<p>Step 3 - Login working</p>
 </header>
 
 <div class="container" id="machines"></div>
+
+<div class="dashboard">
+<h2>Dashboard</h2>
+<p id="balance">Balance: 0 FCFA</p>
+<button class="withdraw">Withdraw</button>
+</div>
 
 <script>
 
 document.addEventListener("DOMContentLoaded", function(){
 
+// ===== SUPABASE SAFE =====
+let supabase = null;
+
+try{
+supabase = window.supabase.createClient(
+"https://xtqhhozntvdmzcywkpbu.supabase.co",
+"sb_publishable_bx3hIxUKdAYg9Le-ifq8og_iKI6DyEt"
+);
+}catch(e){
+console.log("Supabase error", e);
+}
+
+// ===== GLOBAL USER =====
+window.currentUser = null;
+
+// ===== MACHINES =====
 const machines = [
 {name:"Mini Excavator",price:5000},
 {name:"Loader",price:8000},
@@ -64,19 +107,59 @@ const container = document.getElementById("machines");
 machines.forEach(function(m){
 
 let div = document.createElement("div");
-div.className = "machine";
+div.className="machine";
 
 div.innerHTML = `
 <h3>${m.name}</h3>
 <p>${m.price} FCFA</p>
 
-<button class="invest">Invest</button>
+<button class="invest" onclick="invest()">Invest</button>
 <button class="momo">MTN / Orange</button>
 `;
 
 container.appendChild(div);
 
 });
+
+// ===== AUTH =====
+window.signUp = async function(){
+
+let email = document.getElementById("email").value;
+let password = document.getElementById("password").value;
+
+const { error } = await supabase.auth.signUp({email,password});
+
+if(error) alert(error.message);
+else alert("Account created");
+
+}
+
+window.signIn = async function(){
+
+let email = document.getElementById("email").value;
+let password = document.getElementById("password").value;
+
+const { data, error } = await supabase.auth.signInWithPassword({email,password});
+
+if(error){
+alert(error.message);
+}else{
+window.currentUser = data.user;
+document.getElementById("user").innerText = "Logged: " + data.user.email;
+}
+}
+
+// ===== INVEST TEST =====
+window.invest = function(){
+
+if(!window.currentUser){
+alert("Login first");
+return;
+}
+
+alert("Investment works ✔️");
+
+}
 
 });
 
